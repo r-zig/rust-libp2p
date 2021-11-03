@@ -128,7 +128,7 @@ pub enum Event {
         dst_peer_id: PeerId,
         error: std::io::Error,
     },
-    /// An inbound cirucit request has been accepted.
+    /// An inbound circuit request has been accepted.
     CircuitReqAccepted {
         src_peer_id: PeerId,
         dst_peer_id: PeerId,

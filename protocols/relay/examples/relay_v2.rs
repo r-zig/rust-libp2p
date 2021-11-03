@@ -21,7 +21,6 @@
 
 use futures::executor::block_on;
 use futures::stream::StreamExt;
-use libp2p::core::upgrade;
 use libp2p::identify::{Identify, IdentifyConfig, IdentifyEvent};
 use libp2p::noise;
 use libp2p::ping::{Ping, PingConfig, PingEvent};
