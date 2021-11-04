@@ -27,25 +27,33 @@ use libp2p::identify::{Identify, IdentifyConfig, IdentifyEvent};
 use libp2p::noise;
 use libp2p::ping::{Ping, PingConfig, PingEvent};
 
-use libp2p::relay::v2::client::{self, Client};
+use core::fmt;
 use libp2p::dns::DnsConfig;
+use libp2p::relay::v2::client::{self, Client};
 use libp2p::swarm::{AddressScore, Swarm, SwarmEvent};
 use libp2p::tcp::TcpConfig;
 use libp2p::Transport;
 use libp2p::{identity, NetworkBehaviour, PeerId};
 use std::error::Error;
 use std::net::Ipv4Addr;
+use std::str::FromStr;
 use std::task::{Context, Poll};
+use structopt::StructOpt;
 
 fn main() -> Result<(), Box<dyn Error>> {
     env_logger::init();
+    let opt = Opt::from_args();
+    println!("opt: {:?}", opt);
 
-    let local_key = generate_ed25519(std::env::args().nth(1).unwrap().parse().unwrap());
+    // Create a static known PeerId based on given secret
+    let local_key: identity::Keypair = generate_ed25519(opt.secret_key_seed);
     let local_peer_id = PeerId::from(local_key.public());
     println!("Local peer id: {:?}", local_peer_id);
 
-
-    let (transport, client) = Client::new_transport_and_behaviour(local_peer_id, block_on(DnsConfig::system( TcpConfig::new().port_reuse(true))).unwrap());
+    let (transport, client) = Client::new_transport_and_behaviour(
+        local_peer_id,
+        block_on(DnsConfig::system(TcpConfig::new().port_reuse(true))).unwrap(),
+    );
 
     let noise_keys = noise::Keypair::<noise::X25519Spec>::new()
         .into_authentic(&local_key)
@@ -53,50 +61,12 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let transport = transport
         .upgrade()
-        .authenticate_with_version(noise::NoiseConfig::xx(noise_keys).into_authenticated(), upgrade::AuthenticationVersion::V1SimultaneousOpen)
+        .authenticate_with_version(
+            noise::NoiseConfig::xx(noise_keys).into_authenticated(),
+            upgrade::AuthenticationVersion::V1SimultaneousOpen,
+        )
         .multiplex(libp2p_yamux::YamuxConfig::default())
         .boxed();
-
-    #[derive(NetworkBehaviour)]
-    #[behaviour(out_event = "Event", event_process = false)]
-    struct Behaviour {
-        relay_client: Client,
-        ping: Ping,
-        identify: Identify,
-        dcutr: dcutr::behaviour::Behaviour,
-    }
-
-    #[derive(Debug)]
-    enum Event {
-        Ping(PingEvent),
-        Identify(IdentifyEvent),
-        Relay(client::Event),
-        Dcutr(dcutr::behaviour::Event),
-    }
-
-    impl From<PingEvent> for Event {
-        fn from(e: PingEvent) -> Self {
-            Event::Ping(e)
-        }
-    }
-
-    impl From<IdentifyEvent> for Event {
-        fn from(e: IdentifyEvent) -> Self {
-            Event::Identify(e)
-        }
-    }
-
-    impl From<client::Event> for Event {
-        fn from(e: client::Event) -> Self {
-            Event::Relay(e)
-        }
-    }
-
-    impl From<dcutr::behaviour::Event> for Event {
-        fn from(e: dcutr::behaviour::Event) -> Self {
-            Event::Dcutr(e)
-        }
-    }
 
     let behaviour = Behaviour {
         relay_client: client,
@@ -110,39 +80,35 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let mut swarm = Swarm::new(transport, behaviour, local_peer_id);
 
-    if let (Some(external_ip), Some(port)) = (std::env::args().nth(2), std::env::args().nth(3)) {
-        let listen_addr = Multiaddr::empty()
-            .with("0.0.0.0".parse::<Ipv4Addr>().unwrap().into())
-            .with(Protocol::Tcp(port.parse().unwrap()));
-        swarm.listen_on(listen_addr)?;
+    let listen_addr = Multiaddr::empty()
+        .with("0.0.0.0".parse::<Ipv4Addr>().unwrap().into())
+        .with(Protocol::Tcp(opt.port));
+    swarm.listen_on(listen_addr)?;
 
-        let external_addr = Multiaddr::empty()
-            .with(external_ip.parse::<Ipv4Addr>().unwrap().into())
-            .with(Protocol::Tcp(port.parse().unwrap()));
-        swarm.add_external_address(external_addr, AddressScore::Infinite);
-    } else {
-        panic!();
-    }
+    let external_addr = Multiaddr::empty()
+        .with(
+            opt.external_ipv4_address
+                .parse::<Ipv4Addr>()
+                .unwrap()
+                .into(),
+        )
+        .with(Protocol::Tcp(opt.port));
+    swarm.add_external_address(external_addr, AddressScore::Infinite);
 
-    if let (Some(mode), Some(addr)) = (std::env::args().nth(4), std::env::args().nth(5)) {
-        match mode.as_str() {
-            "dial" => {
-                swarm.dial_addr(addr.parse().unwrap()).unwrap();
-            }
-            "listen" => {
-                swarm.listen_on(addr.parse().unwrap()).unwrap();
-            }
-            s => panic!("Unexpected string {:?}", s),
+    match opt.mode {
+        Mode::Dial => {
+            swarm.dial_addr(opt.address).unwrap();
         }
-    } else {
-        panic!();
+        Mode::Listen => {
+            swarm.listen_on(opt.address).unwrap();
+        }
     }
 
     let mut listening = false;
     block_on(futures::future::poll_fn(move |cx: &mut Context<'_>| {
         loop {
             match swarm.poll_next_unpin(cx) {
-                Poll::Ready(Some(SwarmEvent::NewListenAddr{address, ..})) => {
+                Poll::Ready(Some(SwarmEvent::NewListenAddr { address, .. })) => {
                     println!("Listening on {:?}", address);
                 }
                 Poll::Ready(Some(SwarmEvent::Behaviour(Event::Relay(event)))) => {
@@ -175,4 +141,95 @@ fn generate_ed25519(secret_key_seed: u8) -> identity::Keypair {
     let secret_key = identity::ed25519::SecretKey::from_bytes(&mut bytes)
         .expect("this returns `Err` only if the length is wrong; the length is correct; qed");
     identity::Keypair::Ed25519(secret_key.into())
+}
+
+#[derive(NetworkBehaviour)]
+#[behaviour(out_event = "Event", event_process = false)]
+struct Behaviour {
+    relay_client: Client,
+    ping: Ping,
+    identify: Identify,
+    dcutr: dcutr::behaviour::Behaviour,
+}
+
+#[derive(Debug)]
+enum Event {
+    Ping(PingEvent),
+    Identify(IdentifyEvent),
+    Relay(client::Event),
+    Dcutr(dcutr::behaviour::Event),
+}
+
+impl From<PingEvent> for Event {
+    fn from(e: PingEvent) -> Self {
+        Event::Ping(e)
+    }
+}
+
+impl From<IdentifyEvent> for Event {
+    fn from(e: IdentifyEvent) -> Self {
+        Event::Identify(e)
+    }
+}
+
+impl From<client::Event> for Event {
+    fn from(e: client::Event) -> Self {
+        Event::Relay(e)
+    }
+}
+
+impl From<dcutr::behaviour::Event> for Event {
+    fn from(e: dcutr::behaviour::Event) -> Self {
+        Event::Dcutr(e)
+    }
+}
+
+#[derive(Debug, StructOpt)]
+#[structopt(name = "libp2p relay")]
+struct Opt {
+    /// The mode (relay, client-listen, client-dial)
+    #[structopt(long)]
+    mode: Mode,
+
+    /// Fixed value to generate deterministic peer id
+    #[structopt(long)]
+    secret_key_seed: u8,
+
+    /// The external ip address that the client listening on
+    #[structopt(short = "x", long)]
+    external_ipv4_address: String,
+
+    /// The port used to listen both on local and external addresses
+    #[structopt(long)]
+    port: u16,
+
+    /// The multi-address that use to dial to or listen on
+    #[structopt(long)]
+    address: Multiaddr,
+}
+
+#[derive(Debug, StructOpt)]
+enum Mode {
+    Listen,
+    Dial,
+}
+
+impl FromStr for Mode {
+    type Err = ModeError;
+    fn from_str(mode: &str) -> Result<Self, Self::Err> {
+        match mode {
+            "listen" => Ok(Mode::Listen),
+            "dial" => Ok(Mode::Dial),
+            _ => Err(ModeError {}),
+        }
+    }
+}
+
+#[derive(Debug)]
+struct ModeError {}
+impl Error for ModeError {}
+impl fmt::Display for ModeError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Could not parse a mode")
+    }
 }
