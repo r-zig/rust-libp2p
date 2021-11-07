@@ -19,6 +19,51 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
+//! A basic relay server version 2 implementation.
+//!
+//! The example below involves three nodes: (1) a relay server, (2) a listening
+//! dcutr-client listening via the relay server and (3) a dialing dcutr-client
+//! dialing the listening listening client via the relay server.
+//!
+//! 1. To start the relay server, run `cargo run --example=relay_v2 --package=libp2p-relay --secret-key-seed <seed number> --port <port number>`.
+//!    The `-secret-key-seed` helps create a static peer id using the given number argument as a seed.
+//!    The port specifies the port number used to listen for incoming requests with the loop back address. such as `/ip4/0.0.0.0/tcp/3333`.
+//!    IPV4 Example:
+//!    `cargo run --example=relay_v2 --package=libp2p-relay --secret-key-seed 1 --port 3333`
+//!
+//! 2. To start the dcutr-client run `cargo run --example=client --package=libp2p-dcutr --
+//! --mode listen --secret-key-seed <see number>
+//! --port <port number>
+//! --address <addr-relay-server>/p2p/<peer-id-relay-server>/p2p-circuit`
+//! -x <external ip address> in a second terminal where:
+//!
+//!   - `<addr-relay-server>` is replaced by one of the listening addresses of the relay server.
+//!   - `<peer-id-relay-server>` is replaced by the peer id of the relay server.
+//!
+//!    IPV4 local network example:
+//!    `cargo run --example=client --package=libp2p-dcutr --
+//! --mode listen
+//! --secret-key-seed 2
+//! --port 4444
+//! --address /ip4/127.0.0.1/tcp/3333/p2p/12D3KooWPjceQrSwdWXPyLLeABRXmuqt69Rg3sBYbU1Nft9HyQ6X/p2p-circuit
+//! -x 111.212.22.134`
+//!
+//! 3. To start the dialing dcutr-client run `cargo run --example=client --package=libp2p-dcutr --
+//! --mode dial --secret-key-seed <see number>
+//! --port <port number>
+//! --address <addr-relay-server>/p2p/<peer-id-relay-server>/p2p-circuit`
+//! -x <external ip address> in a second terminal where:` in
+//! a third terminal where:
+//!
+//!   - `<addr-relay-server>` is replaced by one of the listening addresses of the relay server.
+//!   - `<peer-id-relay-server>` is replaced by the peer id of the relay server.
+//!   - `<peer-id-listening-relay-client>` is replaced by the peer id of the listening dcutr client.
+//!    IPV4 local network example:
+//!    `cargo run --example=client --package=libp2p-dcutr -- --mode dial --secret-key-seed 3 --port 5555 --address /ip4/127.0.0.1/tcp/3333/p2p/12D3KooWPjceQrSwdWXPyLLeABRXmuqt69Rg3sBYbU1Nft9HyQ6X/p2p-circuit/p2p/12D3KooWH3uVF6wv47WnArKHk5p6cvgCJEb74UTmxztmQDc298L3 -x 111.212.22.134`
+//!
+//! In the third terminal you will see the dialing dcutr client to receive pings
+//! from the listening dcutr client listener
+//!
 use futures::executor::block_on;
 use futures::stream::StreamExt;
 use libp2p::identify::{Identify, IdentifyConfig, IdentifyEvent};
