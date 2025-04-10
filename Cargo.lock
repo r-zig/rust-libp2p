@@ -2782,6 +2782,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "libp2p-circuit-relay-v2"
+version = "0.1.0"
+dependencies = [
+ "futures",
+ "js-sys",
+ "libp2p-core",
+ "libp2p-gossipsub",
+ "libp2p-relay",
+ "libp2p-swarm",
+ "libp2p-tcp",
+ "libp2p-webrtc-utils",
+ "prost",
+ "prost-build",
+ "quick-protobuf",
+ "quick-protobuf-codec",
+ "thiserror 2.0.12",
+ "tokio",
+ "tracing",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+]
+
+[[package]]
 name = "libp2p-connection-limits"
 version = "0.5.1"
 dependencies = [
