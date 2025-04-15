@@ -6,10 +6,13 @@ mod error;
 mod sdp;
 mod stream;
 mod transport;
-mod upgrade;
+pub mod upgrade;
 
 pub use self::{
-    browser::{BrowserTransport, ProtobufStream, Signaling},
+    browser::{
+        BrowserTransport, Config as BrowserConfig, ProtobufStream, Signaling, SignalingProtocol,
+        SIGNALING_PROTOCOL_ID,
+    },
     connection::Connection,
     error::Error,
     stream::Stream,

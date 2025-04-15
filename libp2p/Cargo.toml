@@ -103,6 +103,7 @@ getrandom = { workspace = true } # Explicit dependency to be used in `wasm-bindg
 rw-stream-sink = { workspace = true }
 libp2p-allow-block-list = { workspace = true }
 libp2p-autonat = { workspace = true, optional = true }
+libp2p-circuit-relay-v2 = { workspace = true }
 libp2p-connection-limits = { workspace = true }
 libp2p-core = { workspace = true }
 libp2p-dcutr = { workspace = true, optional = true }

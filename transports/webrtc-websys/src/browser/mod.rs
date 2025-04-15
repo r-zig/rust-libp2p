@@ -2,12 +2,12 @@ mod signaling;
 mod stream;
 mod transport;
 
-pub mod pb {
+pub(crate) mod pb {
     include!(concat!(env!("OUT_DIR"), "/signaling.rs"));
 }
 
 pub use self::{
-    signaling::{Signaling, SIGNALING_PROTOCOL_ID},
+    signaling::{Signaling, SignalingProtocol, SIGNALING_PROTOCOL_ID},
     stream::ProtobufStream,
-    transport::BrowserTransport,
+    transport::{BrowserTransport, Config},
 };

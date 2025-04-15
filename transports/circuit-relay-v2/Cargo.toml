@@ -1,6 +1,6 @@
 [package]
 authors = ["Elijah Hampton <Elijahhamptonj@proton.me>"]
-categories = ["asynchronous", "network-programming", "wasm", "web-programming"]
+categories = ["asynchronous", "network-programming", "wasm", "circuit-relay", "web-programming"]
 description = "Circuit Relay V2 for libp2p under WASM environment"
 edition.workspace = true
 keywords = ["circuit-relay", "libp2p", "networking", "peer-to-peer"]
@@ -17,49 +17,16 @@ prost-build = "0.13.5"
 [dependencies]
 futures = { workspace = true }
 js-sys = { version = "0.3" }
+libp2p-identity = { workspace = true }
 libp2p-core = { workspace = true }
-libp2p-webrtc-utils = { workspace = true }
-libp2p-tcp = { path = "../../transports/tcp" }
-libp2p-relay = { workspace = true }
-libp2p-gossipsub = { workspace = true }
 thiserror = { workspace = true }
-tokio = { workspace = true, features = ["full"] }
 tracing = { workspace = true }
-wasm-bindgen = { version = "0.2.90" }
-wasm-bindgen-futures = { version = "0.4.42" }
-web-sys = { version = "0.3.70", features = [
-  "RtcPeerConnection",
-  "RtcConfiguration",
-  "RtcSessionDescription",
-  "RtcSessionDescriptionInit", 
-  "RtcSdpType",
-  "RtcDataChannel",
-  "RtcDataChannelEvent",
-  "RtcDataChannelInit",
-  "RtcDataChannelState",
-  "RtcDataChannelType",
-  "RtcIceConnectionState",
-  "RtcIceGatheringState",
-  "RtcIceCandidate",
-  "RtcIceCandidateInit",
-  "RtcPeerConnectionIceEvent",
-  "Event",
-  "EventTarget",
-  "MessageEvent",
-  "Window",
-  "Document",
-  "Navigator",
-  "RtcCertificate",
-  "RtcPeerConnectionState",
-  "RtcSignalingState",
-  "Location",
-  "HtmlDocument",
-  "WebSocket"
-]}
-libp2p-swarm = { workspace = true }
 quick-protobuf = "0.8"
 quick-protobuf-codec = { workspace = true }
 prost = "0.13.5"
 
 [lints]
 workspace = true
+
+[features]
+websys = []

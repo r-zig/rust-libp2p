@@ -20,6 +20,20 @@ use web_sys::{
 use super::{Error, Stream};
 use crate::stream::DropListener;
 
+/// Implementation of the [`ConnectionInterface`] expected by the circuit relay.
+impl libp2p_circuit_relay_v2::ConnectionInterface for Connection {
+    fn new_stream(
+        &mut self,
+        protocol_id: &str,
+    ) -> Result<Box<dyn libp2p_circuit_relay_v2::StreamInterface>, libp2p_circuit_relay_v2::Error>
+    {
+        match self.new_stream(protocol_id) {
+            Ok(stream) => Ok(Box::new(stream)),
+            Err(e) => Err(libp2p_circuit_relay_v2::Error::Connection(e.to_string())),
+        }
+    }
+}
+
 /// A WebRTC Connection.
 ///
 /// All connections need to be [`Send`] which is why some fields are wrapped in [`SendWrapper`].
@@ -85,6 +99,16 @@ impl Connection {
             waker.wake()
         }
         stream
+    }
+
+    /// Open a new stream over a [`RtcDataChannel`].
+    pub fn new_stream(&mut self, stream_id: &str) -> Result<Stream, Error> {
+        let data_channel = self.inner.inner.create_data_channel(stream_id);
+        data_channel.set_binary_type(RtcDataChannelType::Arraybuffer);
+
+        let stream = self.new_stream_from_data_channel(data_channel);
+
+        Ok(stream)
     }
 
     pub fn rtc_connection(&self) -> web_sys::RtcPeerConnection {

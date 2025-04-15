@@ -1,6 +1,8 @@
 syntax = "proto3";
 package circuit_relay;
 
+/// https://github.com/libp2p/specs/blob/master/relay/circuit-v2.md#protobuf
+
 message Voucher {
   // These fields are marked optional for backwards compatibility with proto2.
   // Users should make sure to always set these.

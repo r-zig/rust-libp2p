@@ -12,6 +12,9 @@ use self::poll_data_channel::PollDataChannel;
 
 mod poll_data_channel;
 
+/// Implementation of the [`StreamInterface`] expected by the circuit relay.
+impl libp2p_circuit_relay_v2::StreamInterface for Stream {}
+
 /// A stream over a WebRTC connection.
 ///
 /// Backed by a WebRTC data channel.
