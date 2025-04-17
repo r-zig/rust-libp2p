@@ -2745,6 +2745,7 @@ dependencies = [
  "libp2p-tls",
  "libp2p-uds",
  "libp2p-upnp",
+ "libp2p-webrtc-browser",
  "libp2p-webrtc-websys",
  "libp2p-websocket",
  "libp2p-websocket-websys",
@@ -3527,6 +3528,41 @@ dependencies = [
  "tracing-subscriber",
  "webrtc",
  "webrtc-ice",
+]
+
+[[package]]
+name = "libp2p-webrtc-browser"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "bytes",
+ "futures",
+ "futures-timer",
+ "getrandom 0.2.15",
+ "hex",
+ "js-sys",
+ "libp2p-circuit-relay-v2",
+ "libp2p-core",
+ "libp2p-gossipsub",
+ "libp2p-identity",
+ "libp2p-swarm",
+ "libp2p-tcp",
+ "libp2p-webrtc-utils",
+ "libp2p-webrtc-websys",
+ "prost",
+ "prost-build",
+ "quick-protobuf",
+ "quick-protobuf-codec",
+ "send_wrapper 0.6.0",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.12",
+ "tokio",
+ "tracing",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "wasm-bindgen-test",
+ "web-sys",
 ]
 
 [[package]]

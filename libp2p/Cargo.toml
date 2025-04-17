@@ -128,6 +128,7 @@ pin-project = "1.0.0"
 thiserror = { workspace = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
+libp2p-webrtc-browser = { workspace = true, optional = true }
 libp2p-webrtc-websys = { workspace = true, optional = true }
 libp2p-websocket-websys = { workspace = true, optional = true }
 libp2p-webtransport-websys = { workspace = true, optional = true }

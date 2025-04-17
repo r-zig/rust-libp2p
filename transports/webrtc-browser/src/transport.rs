@@ -13,7 +13,7 @@ use libp2p_circuit_relay_v2::{
 };
 use libp2p_core::{
     multiaddr::{Multiaddr, Protocol},
-    transport::{ListenerId, Transport, TransportError, TransportEvent},
+    transport::{ListenerId, Transport as _, TransportError, TransportEvent},
 };
 use libp2p_identity::{Keypair, PeerId};
 use libp2p_webrtc_utils::Fingerprint;
@@ -22,7 +22,8 @@ use wasm_bindgen_futures::spawn_local;
 use web_sys::{RtcConfiguration, RtcDataChannelInit, WebSocket};
 
 use super::{Signaling, SIGNALING_PROTOCOL_ID};
-use crate::{browser::signaling::SignalingProtocol, connection::Connection, error::Error, upgrade};
+use libp2p_webrtc_websys::{Connection, Error, upgrade};
+use crate::{signaling::SignalingProtocol};
 
 /// Configuration for WebRTC browser transport
 #[derive(Debug, Clone)]
@@ -31,7 +32,7 @@ pub struct Config {
     pub stun_servers: Vec<String>,
 }
 
-/// Config for the [`BrowserTransport`].
+/// Config for the [`Transport`].
 impl Config {
     pub fn new(keypair: &Keypair) -> Self {
         Self {
@@ -47,14 +48,14 @@ impl Config {
 }
 
 /// A WebRTC [`Transport`] for browser-to-browser connections.
-pub struct BrowserTransport {
+pub struct Transport {
     config: Config,
-    pending_events: VecDeque<TransportEvent<<Self as Transport>::ListenerUpgrade, Error>>,
+    pending_events: VecDeque<TransportEvent<<Self as libp2p_core::Transport>::ListenerUpgrade, Error>>,
     circuit_relay_cient: CircuitRelayV2Client,
     active_relay_connections: HashMap<Multiaddr, Rc<RefCell<Connection>>>,
 }
 
-impl BrowserTransport {
+impl Transport {
     pub fn new(config: Config) -> Self {
         Self {
             config,
@@ -114,7 +115,7 @@ async fn dial_relay(relay_addr: Multiaddr, config: &Config) -> Result<Connection
     Ok(relay_connection)
 }
 
-impl Transport for BrowserTransport {
+impl libp2p_core::Transport for Transport {
     type Output = (PeerId, Connection);
     type Error = Error;
     type ListenerUpgrade =

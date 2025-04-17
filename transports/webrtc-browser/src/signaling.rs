@@ -11,9 +11,8 @@ use web_sys::{
 
 use super::ProtobufStream;
 use crate::{
-    browser::pb::{signaling_message, SignalingMessage},
+    pb::{signaling_message, SignalingMessage},
     error::Error,
-    stream::Stream,
 };
 
 /// Protocol ID for the WebRTC signaling protocol.

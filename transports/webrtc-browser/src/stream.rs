@@ -3,10 +3,9 @@ use std::marker::PhantomData;
 use futures::{AsyncReadExt, AsyncWriteExt};
 use libp2p_circuit_relay_v2::StreamInterface;
 use prost::Message;
+use crate::{error::Error};
 
-use crate::{error::Error, stream::Stream};
-
-/// A wrapper around a [`Stream`] enabling reads and writes for protobuf messages.
+/// A wrapper around a Stream enabling reads and writes for protobuf messages.
 pub struct ProtobufStream<M> {
     stream: Box<dyn StreamInterface>,
     _phantom: PhantomData<M>,

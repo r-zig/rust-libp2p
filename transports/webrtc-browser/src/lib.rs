@@ -1,6 +1,7 @@
 mod signaling;
 mod stream;
 mod transport;
+mod error;
 
 pub(crate) mod pb {
     include!(concat!(env!("OUT_DIR"), "/signaling.rs"));
@@ -9,5 +10,5 @@ pub(crate) mod pb {
 pub use self::{
     signaling::{Signaling, SignalingProtocol, SIGNALING_PROTOCOL_ID},
     stream::ProtobufStream,
-    transport::{BrowserTransport, Config},
+    transport::{Transport, Config},
 };
