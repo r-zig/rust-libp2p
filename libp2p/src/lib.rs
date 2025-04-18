@@ -96,6 +96,7 @@ pub use libp2p_pnet as pnet;
 #[cfg(feature = "quic")]
 #[cfg(not(target_arch = "wasm32"))]
 pub use libp2p_quic as quic;
+#[cfg(feature = "relayv2")]
 #[doc(inline)]
 pub use libp2p_circuit_relay_v2 as relayv2;
 #[cfg(feature = "relay")]

@@ -21,6 +21,7 @@ use super::{Error, Stream};
 use crate::stream::DropListener;
 
 /// Implementation of the [`ConnectionInterface`] expected by the circuit relay.
+#[cfg(feature = "relayv2")]
 impl libp2p_circuit_relay_v2::ConnectionInterface for Connection {
     fn new_stream(
         &mut self,

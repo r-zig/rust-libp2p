@@ -1,6 +1,7 @@
 use std::marker::PhantomData;
 
 use futures::{AsyncReadExt, AsyncWriteExt};
+#[cfg(feature = "relayv2")]
 use libp2p_circuit_relay_v2::StreamInterface;
 use prost::Message;
 use crate::{error::Error};

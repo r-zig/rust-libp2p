@@ -10,6 +10,7 @@ use libp2p_core::{multiaddr::Protocol, Multiaddr};
 use libp2p_identity::PeerId;
 use prost::Message;
 
+#[cfg(feature = "relayv2")]
 use crate::{
     pb::{hop_message, stop_message, HopMessage, Limit, Peer, Status, StopMessage}, traits::{CircuitRelay, CircuitRelayProtocol}, 
     ConnectionInterface, Error, StreamInterface, RELAY_V2_HOP_PROTOCOL_ID, RELAY_V2_STOP_PROTOCOL_ID
@@ -23,6 +24,7 @@ use crate::{
 /// 
 /// https://github.com/libp2p/specs/blob/master/relay/circuit-v2.md#reservation
 #[derive(Debug, Clone)]
+#[cfg(feature = "relayv2")]
 pub struct ReservationVoucher {
     /// The relay's peer ID
     pub relay_peer_id: PeerId,
@@ -38,16 +40,18 @@ pub struct ReservationVoucher {
 
 /// The circuit-relay v2 client.
 #[derive(Clone, Debug)]
+#[cfg(feature = "relayv2")]
 pub struct CircuitRelayV2Client {
     reservations: HashMap<Multiaddr, ReservationVoucher>,
-    limits: HashMap<PeerId, Limit>,
+    _limits: HashMap<PeerId, Limit>,
 }
 
+#[cfg(feature = "relayv2")]
 impl CircuitRelayV2Client {
     pub fn new() -> Self {
         Self {
             reservations: HashMap::new(),
-            limits: HashMap::new(),
+            _limits: HashMap::new(),
         }
     }
 
@@ -65,6 +69,7 @@ impl CircuitRelayV2Client {
     }
 }
 
+#[cfg(feature = "relayv2")]
 impl CircuitRelay for CircuitRelayV2Client {
     /// Connect to a peer through the relay.
     async fn connect_through_relay(
@@ -76,6 +81,7 @@ impl CircuitRelay for CircuitRelayV2Client {
     }
 }
 
+#[cfg(feature = "relayv2")]
 impl CircuitRelayProtocol for CircuitRelayV2Client {
     /// Implementation of the Hop Protocol. Governs interactions 
     /// between clients and the relay.
@@ -121,8 +127,8 @@ impl CircuitRelayProtocol for CircuitRelayV2Client {
             Err(Error::Connection("".to_string())).unwrap()
         }
 
-        let reservation = hop_message.reservation.unwrap();
-        let limit = hop_message.limit.unwrap_or_default();
+        let _reservation = hop_message.reservation.unwrap();
+        let _limit = hop_message.limit.unwrap_or_default();
 
         Ok(stream)
     }

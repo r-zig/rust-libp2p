@@ -27,7 +27,7 @@ libp2p-identity = { workspace = true }
 libp2p-webrtc-utils = { workspace = true }
 libp2p-tcp = { path = "../../transports/tcp" }
 libp2p-gossipsub = { workspace = true }
-libp2p-circuit-relay-v2 = {  workspace = true }
+libp2p-circuit-relay-v2 = { workspace = true, optional = true, features = ["relayv2"] }
 libp2p-webrtc-websys = { workspace = true }
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
@@ -78,12 +78,6 @@ workspace = true
 [lib]
 crate-type = ["cdylib", "rlib"]
 
-[patch.crates-io]
-# Patch errno for WASM compatibility
-errno = { git = "https://github.com/nox/errno", branch = "wasm32" }
-
-# Patch polling with a dummy implementation for WASM
-polling = { git = "https://github.com/smol-rs/polling", branch = "master", package = "polling" }
-
-# Patch if-addrs with a dummy implementation for WASM
-if-addrs = { git = "https://github.com/nox/if-addrs", branch = "dummy-wasm32" }
+[features]
+default = ["relayv2"]
+relayv2 = ["libp2p-circuit-relay-v2"]

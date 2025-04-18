@@ -23,7 +23,7 @@ use web_sys::{RtcConfiguration, RtcDataChannelInit, WebSocket};
 
 use super::{Signaling, SIGNALING_PROTOCOL_ID};
 use libp2p_webrtc_websys::{Connection, Error, upgrade};
-use crate::{signaling::SignalingProtocol};
+use crate::signaling::SignalingProtocol;
 
 /// Configuration for WebRTC browser transport
 #[derive(Debug, Clone)]
@@ -51,6 +51,7 @@ impl Config {
 pub struct Transport {
     config: Config,
     pending_events: VecDeque<TransportEvent<<Self as libp2p_core::Transport>::ListenerUpgrade, Error>>,
+    #[cfg(feature = "relayv2")]
     circuit_relay_cient: CircuitRelayV2Client,
     active_relay_connections: HashMap<Multiaddr, Rc<RefCell<Connection>>>,
 }
@@ -60,12 +61,14 @@ impl Transport {
         Self {
             config,
             pending_events: VecDeque::new(),
+            #[cfg(feature = "relayv2")]
             circuit_relay_cient: CircuitRelayV2Client::new(),
             active_relay_connections: HashMap::new(),
         }
     }
 
     /// Reserve a spot on the circuit relay.
+    #[cfg(feature = "relayv2")]
     pub async fn reserve_relay(&mut self, relay_addr: &Multiaddr) {
         let mut relay_connection = dial_relay(relay_addr.clone(), &self.config).await.unwrap();
         self.circuit_relay_cient
@@ -195,7 +198,7 @@ impl libp2p_core::Transport for Transport {
                 let existing_conn = active_relay_conns
                     .iter()
                     .find(
-                        |(addr, rc_conns): &(&Multiaddr, &Rc<RefCell<Connection>>)| {
+                        |(addr, _rc_conns): &(&Multiaddr, &Rc<RefCell<Connection>>)| {
                             *addr == &relay_addr
                         },
                     )
@@ -264,7 +267,7 @@ impl libp2p_core::Transport for Transport {
 
     fn poll(
         mut self: Pin<&mut Self>,
-        cx: &mut Context<'_>,
+        _cx: &mut Context<'_>,
     ) -> Poll<TransportEvent<Self::ListenerUpgrade, Self::Error>> {
         if let Some(event) = self.pending_events.pop_front() {
             return Poll::Ready(event);

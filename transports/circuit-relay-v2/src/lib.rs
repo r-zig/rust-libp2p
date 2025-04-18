@@ -7,6 +7,7 @@ pub mod pb {
     include!(concat!(env!("OUT_DIR"), "/circuit_relay.rs"));
 }
 
+#[cfg(feature = "relayv2")]
 pub use self::{
     client::CircuitRelayV2Client,
     error::Error,

@@ -29,4 +29,4 @@ prost = "0.13.5"
 workspace = true
 
 [features]
-websys = []
+relayv2 = []

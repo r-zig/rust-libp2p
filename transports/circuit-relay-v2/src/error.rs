@@ -1,6 +1,7 @@
 /// Errors that may happen on the [`Transport`](crate::Transport) or the
 /// [`Connection`](crate::Connection).
 #[derive(thiserror::Error, Debug)]
+#[cfg(feature = "relayv2")]
 pub enum Error {
     #[error("Invalid multiaddr: {0}")]
     InvalidMultiaddr(String),
@@ -21,18 +22,21 @@ pub enum Error {
     ProtoSerialization(String),
 }
 
+#[cfg(feature = "relayv2")]
 impl From<std::io::Error> for Error {
     fn from(error: std::io::Error) -> Self {
         Error::Connection(error.to_string())
     }
 }
 
+#[cfg(feature = "relayv2")]
 impl From<prost::DecodeError> for Error {
     fn from(error: prost::DecodeError) -> Self {
         Error::ProtoSerialization(error.to_string())
     }
 }
 
+#[cfg(feature = "relayv2")]
 impl From<prost::EncodeError> for Error {
     fn from(error: prost::EncodeError) -> Self {
         Error::ProtoSerialization(error.to_string())
@@ -40,6 +44,7 @@ impl From<prost::EncodeError> for Error {
 }
 
 // Libp2p PeerID parsing errors
+#[cfg(feature = "relayv2")]
 impl From<libp2p_identity::ParseError> for Error {
     fn from(error: libp2p_identity::ParseError) -> Self {
         Error::Connection(error.to_string())
@@ -47,6 +52,7 @@ impl From<libp2p_identity::ParseError> for Error {
 }
 
 // For multiaddr parsing errors
+#[cfg(feature = "relayv2")]
 impl From<libp2p_core::multiaddr::Error> for Error {
     fn from(error: libp2p_core::multiaddr::Error) -> Self {
         Error::InvalidMultiaddr(error.to_string())
@@ -54,6 +60,7 @@ impl From<libp2p_core::multiaddr::Error> for Error {
 }
 
 // Generic string error conversion
+#[cfg(feature = "relayv2")]
 impl From<String> for Error {
     fn from(error: String) -> Self {
         Error::Connection(error)
